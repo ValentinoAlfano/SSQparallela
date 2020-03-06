@@ -12,6 +12,7 @@ import utils
 import os
 from pathlib import Path
 import random
+from SSQ_INDEX import data_sensor
 
 
 
@@ -22,6 +23,10 @@ URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
 
 
+# MAIN
+while True:
+	send_flask(data_sensor)
+	time.sleep(5)
 # ------------ Funzione di DEBUG --------------
 STR_DEBUG = ""
 DEBUG=True
@@ -54,56 +59,9 @@ def check_internet():
 	except Exception:
 		print("ERRORE CONNESSIONE")
 	
-
-
-#---------------------- FUNZIONI per Flask -----------------------------------:
-
-# Funzione che verifica se il file "DATABUFFER.json" esiste già:
-
-# def lettura_file_vuoto():
-	
-#     if os.path.exists(utils.path+"DATABUFFER.json"):    
-#         print("\nFile DATABUFFER.json ESISTE\n")
-#         return 1
-#     else:
-#         print("\nFile DATABUFFER.json NON ESISTE\n")
-#         return 0
-    
-
-# non usata, sostituita dalla precedente
-# def lettura_file_vuoto_old(): 
-#     try:
-#         with open(utils.path+"DATABUFFER.json", 'r') as fp:
-#             readFile = fp.read()
-#             if readFile == "":
-#                 print("\nFile DATABUFFER.json VUOTO\n")
-#                 return 1
-#             else:
-#                 print("\nFile DATABUFFER.json contiene DATI\n")
-#                 return 0
-#     except Exception:
-#         print("ERRORE: lettura file \"DATABUFFER.json\" non riuscita")
-
-
-
-# Funzione che scrive sul file "DATABUFFER.json":
-# def scrittura_file_old(dato):
-#     try:
-#         with open(utils.path+"DATABUFFER.json", 'w') as file:
-#             json.dump(dato, file)
-        
-#     except Exception as e:
-#         print("\nERRORE: scrittura del dato sul file non riuscita")
-#         print(e)
-
-# Funzione che scrive in append sul file "DATABUFFER_YY_MM_DD.json"
+# Funzione che scrive sul file "DATABUFFER_YY_MM_DD.json"
 def scrittura_file(filename, dato):
 	try:	
-		# if os.path.exists(filename):
-		# 	mode = 'a'
-		# else:
-		# 	mode = 'w'
-
 		#print("Provo a scrivere su " + filename)
 		with open(filename, 'w') as file:
 			json.dump(dato, file)
@@ -261,7 +219,7 @@ def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
 	query_next_day={"_id": weekday+1 , "date": days_from_epoch }
 	query_today={"_id": weekday, "date": days_from_epoch}
 
-#creo la query per il pattern del giorno dopo
+	#creo la query per il pattern del giorno dopo
 	for d in feeds2:
 		p=json.dumps(d)
 		p=p[1:len(p)-1]
@@ -282,7 +240,7 @@ def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
 
 	new_dict={}
 	
-#creo pattern per la query del giorno attuale
+	#creo pattern per la query del giorno attuale
 	for d in feeds2:
 		p=json.dumps(d)
 		p=p[1:len(p)-1]
@@ -356,14 +314,8 @@ def creazione_data_request(centralina,polygons,coordinate,squares, timestamp, fe
 	
 	return dati
 	
-	
-	
-	
-
-
-
 #Funzione che invia la singola stringa a Flask
-def invio_dati_flask_str(centralina, data, data_sensor):
+def invio_dati_flask_str(data, data_sensor):
 	
 	global STR_DEBUG
 
@@ -396,7 +348,7 @@ def invio_dati_flask_str(centralina, data, data_sensor):
 	return False
 
 #Funzione che invia direttamente il file a Flask - DA RIVEDERE NON FUNZIONA
-def invio_dati_flask_file(centralina, file, data_sensor):
+def invio_dati_flask_file(file, data_sensor):
 	global STR_DEBUG
 
 	try:
@@ -433,172 +385,130 @@ def invio_dati_flask_file(centralina, file, data_sensor):
 
 # Funzione di invio dati a Flask:
 
-def send_flask_old(centralina,valori,polygons,squares,data_sensor, timestamp):
-	global STR_DEBUG
-	global DEBUG
-	print("Sono in send_flask")
-	lat=valori['latitude']
-	lon=valori['longitude']
-	coordinate=(lat,lon)
+# def send_flask_old(centralina,valori,polygons,squares,data_sensor, timestamp):
+# 	global STR_DEBUG
+# 	global DEBUG
+# 	print("Sono in send_flask")
+# 	lat=valori['latitude']
+# 	lon=valori['longitude']
+# 	coordinate=(lat,lon)
 
-	STR_DEBUG += update_str_debug("\n INIZIO ESECUZIONE send_flask")
+# 	STR_DEBUG += update_str_debug("\n INIZIO ESECUZIONE send_flask")
 	
-	contenitore_buffer=[]
+# 	contenitore_buffer=[]
 	
-	data=creazione_data_request(centralina,polygons,coordinate,squares, timestamp,valori,data_sensor)	
+# 	data=creazione_data_request(centralina,polygons,coordinate,squares, timestamp,valori,data_sensor)	
 
-	if not lettura_file_vuoto():  #se non esiste DATABUFFER.json entra
-		STR_DEBUG += update_str_debug("\n Lettura file DATABUFFER vuoto")
-		tentativo_conn=0
-		#Prova Invio
-		while tentativo_conn<3:
-			STR_DEBUG += update_str_debug("\n Tentativo connessione numero:" + str(tentativo_conn)+ " ")
-			connessione=check_internet()
-			if connessione:
-				break
-			else:
-				print("Tentativo di connessione numero:" + str(tentativo_conn))
-				tentativo_conn = tentativo_conn +1
-				time.sleep(20)
+# 	if not lettura_file_vuoto():  #se non esiste DATABUFFER.json entra
+# 		STR_DEBUG += update_str_debug("\n Lettura file DATABUFFER vuoto")
+# 		tentativo_conn=0
+# 		#Prova Invio
+# 		while tentativo_conn<3:
+# 			STR_DEBUG += update_str_debug("\n Tentativo connessione numero:" + str(tentativo_conn)+ " ")
+# 			connessione=check_internet()
+# 			if connessione:
+# 				break
+# 			else:
+# 				print("Tentativo di connessione numero:" + str(tentativo_conn))
+# 				tentativo_conn = tentativo_conn +1
+# 				time.sleep(20)
 				
-		if connessione:
-			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
-			#invio dati
-			n_dati_ricevuti = 0
+# 		if connessione:
+# 			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
+# 			#invio dati
+# 			n_dati_ricevuti = 0
 			
-			esitoInvio=invio_dati_flask(centralina, data, data_sensor)
-			if esitoInvio:
-				STR_DEBUG += update_str_debug("Dato inviato con successo")
-				n_dati_ricevuti += 1
-				print ("Numero dati ricevuti:" + str(n_dati_ricevuti))
-			if n_dati_ricevuti==0:
-				STR_DEBUG += update_str_debug("Dato non inviato, memorizzato nel buffer")
-				print ("Numero dati ricevuti:" + str(n_dati_ricevuti))
-				contenitore_buffer.append(data)
-				scrittura_file(contenitore_buffer)
-		else:
-			#connessione fallita
-			STR_DEBUG += update_str_debug ("Connessione fallita: invio dati fallito, aggiornamento buffer")
-			contenitore_buffer.append(data)
-			scrittura_file(contenitore_buffer)
-	else:
-		#file non vuoto
-		#lettura dati dal buffer
-		STR_DEBUG += update_str_debug ("Lettura file DATABUFFER pieno")
-		pacchetto_dati=[]
-		with open(utils.path+"DATABUFFER.json", "r") as fp:
-			pacchetto_dati=json.load(fp)
+# 			esitoInvio=invio_dati_flask(centralina, data, data_sensor)
+# 			if esitoInvio:
+# 				STR_DEBUG += update_str_debug("Dato inviato con successo")
+# 				n_dati_ricevuti += 1
+# 				print ("Numero dati ricevuti:" + str(n_dati_ricevuti))
+# 			if n_dati_ricevuti==0:
+# 				STR_DEBUG += update_str_debug("Dato non inviato, memorizzato nel buffer")
+# 				print ("Numero dati ricevuti:" + str(n_dati_ricevuti))
+# 				contenitore_buffer.append(data)
+# 				scrittura_file(contenitore_buffer)
+# 		else:
+# 			#connessione fallita
+# 			STR_DEBUG += update_str_debug ("Connessione fallita: invio dati fallito, aggiornamento buffer")
+# 			contenitore_buffer.append(data)
+# 			scrittura_file(contenitore_buffer)
+# 	else:
+# 		#file non vuoto
+# 		#lettura dati dal buffer
+# 		STR_DEBUG += update_str_debug ("Lettura file DATABUFFER pieno")
+# 		pacchetto_dati=[]
+# 		with open(utils.path+"DATABUFFER.json", "r") as fp:
+# 			pacchetto_dati=json.load(fp)
 		
-		#aggiunta del nuovo oggetto ricevuto più il contenuto del buffer
-		pacchetto_dati.append(data)
+# 		#aggiunta del nuovo oggetto ricevuto più il contenuto del buffer
+# 		pacchetto_dati.append(data)
 		
-		#prova invio
-		tentativo_conn=0
-		while tentativo_conn<3:
-			STR_DEBUG += update_str_debug ("Tentativo connessione numero:" +str(tentativo_conn)+ " ")
-			connessione=check_internet()
-			if connessione:
-				break
-			else:
-				print("Tentativo connessione numero:" +str(tentativo_conn))
-				tentativo_conn = tentativo_conn +1
-				time.sleep(20)
-		if connessione:
-			#invio dati
-			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
-			dim_pacchetto = len(pacchetto_dati)
-			print ("\n Numero di pacchetti da inviare:" +str(dim_pacchetto))
-			i=0
-			n_dati_ricevuti=0
-			while i<dim_pacchetto:
-				esitoInvio=invio_dati_flask(centralina,pacchetto_dati[i],data_sensor)
-				if esitoInvio:
-					print("Pacchetto #" + str(i) + "ricevuto")
-					n_dati_ricevuti +=1
-					i +=1
-				else:
-					print("Pacchetto #" + str(i) + "non ricevuto")
-					break
-			print("numero dati ricevuti:" + str(n_dati_ricevuti))
+# 		#prova invio
+# 		tentativo_conn=0
+# 		while tentativo_conn<3:
+# 			STR_DEBUG += update_str_debug ("Tentativo connessione numero:" +str(tentativo_conn)+ " ")
+# 			connessione=check_internet()
+# 			if connessione:
+# 				break
+# 			else:
+# 				print("Tentativo connessione numero:" +str(tentativo_conn))
+# 				tentativo_conn = tentativo_conn +1
+# 				time.sleep(20)
+# 		if connessione:
+# 			#invio dati
+# 			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
+# 			dim_pacchetto = len(pacchetto_dati)
+# 			print ("\n Numero di pacchetti da inviare:" +str(dim_pacchetto))
+# 			i=0
+# 			n_dati_ricevuti=0
+# 			while i<dim_pacchetto:
+# 				esitoInvio=invio_dati_flask(centralina,pacchetto_dati[i],data_sensor)
+# 				if esitoInvio:
+# 					print("Pacchetto #" + str(i) + "ricevuto")
+# 					n_dati_ricevuti +=1
+# 					i +=1
+# 				else:
+# 					print("Pacchetto #" + str(i) + "non ricevuto")
+# 					break
+# 			print("numero dati ricevuti:" + str(n_dati_ricevuti))
 			
-			if n_dati_ricevuti==dim_pacchetto:
-			#cancellazione databuffer
-				STR_DEBUG += update_str_debug("DATABUFFER svuotato")
-				os.remove(utils.path+"DATABUFFER.json")
-				#with open(utils.path+"DATABUFFER.json","w") as file:
-				#	file.write("")
-				print ("file DATABUFFER.json eliminato")
-			elif 0<n_dati_ricevuti<dim_pacchetto:
-				STR_DEBUG += update_str_debug("ricevuti solo alcuni oggetti del pacchetto dati")
-				i=0
-				j=0
-				while j<n_dati_ricevuti:
-					#ipotizzo che vengano presi i primi oggetti del pacchetto_dati
-					pacchetto_dati.pop(i)
-					print ("Primo oggetto del pacchetto_dati eliminato" +str(j))
-					j=j+1
-				scrittura_file(pacchetto_dati)
-			elif n_dati_ricevuti==0:
+# 			if n_dati_ricevuti==dim_pacchetto:
+# 			#cancellazione databuffer
+# 				STR_DEBUG += update_str_debug("DATABUFFER svuotato")
+# 				os.remove(utils.path+"DATABUFFER.json")
+# 				#with open(utils.path+"DATABUFFER.json","w") as file:
+# 				#	file.write("")
+# 				print ("file DATABUFFER.json eliminato")
+# 			elif 0<n_dati_ricevuti<dim_pacchetto:
+# 				STR_DEBUG += update_str_debug("ricevuti solo alcuni oggetti del pacchetto dati")
+# 				i=0
+# 				j=0
+# 				while j<n_dati_ricevuti:
+# 					#ipotizzo che vengano presi i primi oggetti del pacchetto_dati
+# 					pacchetto_dati.pop(i)
+# 					print ("Primo oggetto del pacchetto_dati eliminato" +str(j))
+# 					j=j+1
+# 				scrittura_file(pacchetto_dati)
+# 			elif n_dati_ricevuti==0:
 				
-				STR_DEBUG += update_str_debug("Connessione fallita: aggiorno databuffer")
-				scrittura_file(pacchetto_dati)
-	if DEBUG:
-		try:
-			utils.checkPath(utils.path + "InvioDati_Log/")
-			fileName=utils.path+"InvioDati_Log/InvioDati_log_"+datetime.datetime.today().strftime('%d_%m_%Y')+".txt"
+# 				STR_DEBUG += update_str_debug("Connessione fallita: aggiorno databuffer")
+# 				scrittura_file(pacchetto_dati)
+# 	if DEBUG:
+# 		try:
+# 			utils.checkPath(utils.path + "InvioDati_Log/")
+# 			fileName=utils.path+"InvioDati_Log/InvioDati_log_"+datetime.datetime.today().strftime('%d_%m_%Y')+".txt"
 			
-			with open(fileName,'a')as file:
-				file.write(STR_DEBUG)
-			print ("Stampa InvioDati_log.txt riuscita")
-		except:
-			print ("Stampa InvioDati_log.txt non riuscita")
+# 			with open(fileName,'a')as file:
+# 				file.write(STR_DEBUG)
+# 			print ("Stampa InvioDati_log.txt riuscita")
+# 		except:
+# 			print ("Stampa InvioDati_log.txt non riuscita")
 
 #Funzione che scrive su file i dati e procede al caricamento dei file vecchi
-def send_flask(centralina, valori, polygons, squares, data_sensor, timestamp):
+def send_flask(data_sensor):
 	global STR_DEBUG
 	global DEBUG
-	
-	lat=valori['latitude']
-	lon=valori['longitude']
-	coordinate=(lat,lon)
-
-	STR_DEBUG += update_str_debug("\n INIZIO ESECUZIONE send_flask")
-	
-	#DATO CAMPIONATO
-	data_sample = creazione_data_request(centralina,polygons,coordinate,squares, timestamp,valori,data_sensor)	
-
-	#PRIMA DI SCRIVERE DEVO CONTROLLARE SE ESISTE GIA' IL FILE
-	#SE ESISTE DEVO LEGGERNE I PACCHETTI E POI RISCRIVERE LA LISTA COMPLETA COI DATI NUOVI
-	filename = utils.path + "DATABUFFER_" + timestamp[:10] + ".json"
-	buffer = []
-	print("Cerco il file in cui salvare i dati appena campionati...")
-	if os.path.exists(filename):
-		print("Trovato " + filename)
-		#Il file esiste già, quindi leggo i pacchetti che contiene, aggiungo in coda i dati campionati e riscrivo il file completo
-		print("Leggo i pacchetti in " + filename + " ...")
-		
-		with open(filename, "r") as fp:
-			data_sample_from_file = json.load(fp)
-		
-		print("Contiene " + str(len(data_sample_from_file)) + " pacchetti")
-		#AGGIUNGO I PACCHETTI ALLA LISTA TEMP
-		i = 0
-		
-		while len(data_sample_from_file):
-			i += 1
-			print("Pacchetto # " + str(i) + " aggiunto")
-			buffer.append(data_sample_from_file[0])
-			data_sample_from_file.pop(0)
-		print("Pacchetti aggiunti alla lista temp:" + str(i))	
-	else:
-		#SE NON ESISTE ANCORA IL FILE NON FARE NIENTE
-		print(filename + " non esiste ancora")
-	#IN CODA AGGIUNGO IL DATO CAMPIONATO ATTUALE
-	buffer.append(data_sample)
-	#SCRIVO LA LISTA BUFFER SU FILE
-	print("Scrittura su " + filename + " ...")
-	scrittura_file(filename, buffer)
-	print("Ho salvato i dati appena campionati in " + filename)
 	
 	#Faccio 3 tentativi di connessione
 	
@@ -631,7 +541,7 @@ def send_flask(centralina, valori, polygons, squares, data_sensor, timestamp):
 							
 						i = 0
 						while len(data_sample_from_file):
-							esitoInvio = invio_dati_flask_str(centralina,data_sample_from_file[0],data_sensor)
+							esitoInvio = invio_dati_flask_str(data_sample_from_file[0],data_sensor)
 							if esitoInvio:
 								print("Pacchetto #" + str(i + 1) + " inviato\n")
 								i += 1
@@ -656,7 +566,7 @@ def send_flask(centralina, valori, polygons, squares, data_sensor, timestamp):
 					else:
 						#se pacchetti >= 10 ------> invio_dati_flask_file()
 						start_time = time.time()
-						esitoInvio = invio_dati_flask_file(centralina, file, data_sensor)
+						esitoInvio = invio_dati_flask_file(file, data_sensor)
 						if esitoInvio:
 							print("File: " + file + " inviato in %s secondi " % round((time.time() - start_time)))
 							os.remove(file)
@@ -684,85 +594,85 @@ def send_flask(centralina, valori, polygons, squares, data_sensor, timestamp):
 #----------------------- FUNZIONI per ThingSpeak ------------------------------:
 
 # Funzione che ritorna url per ThingSpeak:
-def url_thingspeak(dati,api,vettore):
-    global STR_DEBUG
-    STR_DEBUG += update_str_debug("\nINIZIO ESECUZIONE url_thingspeak: ")
+# def url_thingspeak(dati,api,vettore):
+#     global STR_DEBUG
+#     STR_DEBUG += update_str_debug("\nINIZIO ESECUZIONE url_thingspeak: ")
 
-    url = "https://api.thingspeak.com/update?"+"api_key="+api
-    i=0
-    for field in vettore:
+#     url = "https://api.thingspeak.com/update?"+"api_key="+api
+#     i=0
+#     for field in vettore:
 
-        # codifica dei valori field da unicode a latin1:
-        field = codecs.encode(field, "latin1")
+#         # codifica dei valori field da unicode a latin1:
+#         field = codecs.encode(field, "latin1")
 
-        if dati.get(field) is not None:
-            url+= '&field'+str(i+1)+'='+str(dati[field])
-        i=i+1
+#         if dati.get(field) is not None:
+#             url+= '&field'+str(i+1)+'='+str(dati[field])
+#         i=i+1
 
-    return url
+#     return url
 
 
 # Funzione di invio dati a ThingSpeak:
-def send_thinkspeak(info,valori):
-    global STR_DEBUG
-    global DEBUG
-    STR_DEBUG += update_str_debug("\nINIZIO ESECUZIONE send_thinkspeak: ")
+# def send_thinkspeak(info,valori):
+#     global STR_DEBUG
+#     global DEBUG
+#     STR_DEBUG += update_str_debug("\nINIZIO ESECUZIONE send_thinkspeak: ")
 
-    n_canali = info['NUMERO_CANALI']
-    api_keys = info['API_KEYS']
-    campi_canali = info['CAMPI']
+#     n_canali = info['NUMERO_CANALI']
+#     api_keys = info['API_KEYS']
+#     campi_canali = info['CAMPI']
 
-    # Creazione url:
-    url=[]
-    i=0
-    while i<n_canali:
-        url.append(url_thingspeak(valori,api_keys[i],campi_canali[i]))
-        i+=1
+#     # Creazione url:
+#     url=[]
+#     i=0
+#     while i<n_canali:
+#         url.append(url_thingspeak(valori,api_keys[i],campi_canali[i]))
+#         i+=1
 
-    # 10 tentativi di connessione, appena la rete è disponibile invia il dato altrimenti questo viene perso:
-    invio_successo=False
-    for i in range(10):
-        if check_internet()!=True:
-            STR_DEBUG += update_str_debug("Connessione fallita: invio dati ")
-            STR_DEBUG += update_str_debug("Tentativo di connssione numero " + str((i+1)) + " ")
+#     # 10 tentativi di connessione, appena la rete è disponibile invia il dato altrimenti questo viene perso:
+#     invio_successo=False
+#     for i in range(10):
+#         if check_internet()!=True:
+#             STR_DEBUG += update_str_debug("Connessione fallita: invio dati ")
+#             STR_DEBUG += update_str_debug("Tentativo di connssione numero " + str((i+1)) + " ")
 
-            print("Tentativo di connessione numero "+str((i+1)))
-            i+=1
-            time.sleep(1)
-        else:
-            STR_DEBUG += update_str_debug("Connessione riuscita: invio dati ")
+#             print("Tentativo di connessione numero "+str((i+1)))
+#             i+=1
+#             time.sleep(1)
+#         else:
+#             STR_DEBUG += update_str_debug("Connessione riuscita: invio dati ")
 
-            n = 1
-            for j in url:
-                try:
-                    requests.get(j)
-                    print("\ninvio dei dati sul CANALE "+str(n)+" riuscito.")
+#             n = 1
+#             for j in url:
+#                 try:
+#                     requests.get(j)
+#                     print("\ninvio dei dati sul CANALE "+str(n)+" riuscito.")
 
-                    STR_DEBUG += update_str_debug("Invio del dato sul canale " + str(n) + " riuscito ")
-                    #time.sleep(5)
-                except:
-                    STR_DEBUG += update_str_debug("Invio del dato sul canale " + str(n) + " fallito ")
-                    print("ERRORE: invio dei dati sul CANALE "+str(n)+" fallito")
+#                     STR_DEBUG += update_str_debug("Invio del dato sul canale " + str(n) + " riuscito ")
+#                     #time.sleep(5)
+#                 except:
+#                     STR_DEBUG += update_str_debug("Invio del dato sul canale " + str(n) + " fallito ")
+#                     print("ERRORE: invio dei dati sul CANALE "+str(n)+" fallito")
                     
-                n += 1
-            invio_successo=True
-            break
+#                 n += 1
+#             invio_successo=True
+#             break
 
-    if invio_successo==False:
-        STR_DEBUG += update_str_debug("Raggiunto limite di tentativi di invio del dato. Dato perso ")
+#     if invio_successo==False:
+#         STR_DEBUG += update_str_debug("Raggiunto limite di tentativi di invio del dato. Dato perso ")
         
-        print("\nERRORE: Raggiunto limite di tentativi. Dato perso")
+#         print("\nERRORE: Raggiunto limite di tentativi. Dato perso")
 
-    if DEBUG:
-        try:
-            fileName = utils.path + "InvioDati_Log/InvioDati_log_" + datetime.datetime.today().strftime('%d_%m_%Y') + ".txt"
-            with open(fileName, 'a') as file:
-                file.write(STR_DEBUG)
+#     if DEBUG:
+#         try:
+#             fileName = utils.path + "InvioDati_Log/InvioDati_log_" + datetime.datetime.today().strftime('%d_%m_%Y') + ".txt"
+#             with open(fileName, 'a') as file:
+#                 file.write(STR_DEBUG)
 
-            print("Stampa InvioDati_log.txt riuscita")
+#             print("Stampa InvioDati_log.txt riuscita")
 
-        except:
-            print("Stampa InvioDati_log.txt non riuscita")
+#         except:
+#             print("Stampa InvioDati_log.txt non riuscita")
 
 
 
@@ -790,64 +700,64 @@ def lettura_file_configurazione():
 
 
 # Funzione di invio dati su Firebase e ThingSpeak:
-def send_data(config,valori,polygon,squares, data_sensor, timestamp):
-    global STR_DEBUG
-    STR_DEBUG += update_str_debug("\n\n\n---- INIZIO ESECUZIONE send_data: ")
+# def send_data(config,valori,polygon,squares, data_sensor, timestamp):
+#     global STR_DEBUG
+#     STR_DEBUG += update_str_debug("\n\n\n---- INIZIO ESECUZIONE send_data: ")
 
-    # Verifico se FLASK è attivo a "True" per poter inviare il dato a Flask:
+#     # Verifico se FLASK è attivo a "True" per poter inviare il dato a Flask:
 
-    if config.get_firebase():
-        STR_DEBUG += update_str_debug("Flask attivo ")
+#     if config.get_firebase():
+#         STR_DEBUG += update_str_debug("Flask attivo ")
 
-        # recupero le info per inviare a Flask (nome della centralina):
-        print("\nINVIO DATI SU FLASK:")
-        info_firebase = config.get_firebase_info()
-        centralina = info_firebase['ID_CENTRALINA']
+#         # recupero le info per inviare a Flask (nome della centralina):
+#         print("\nINVIO DATI SU FLASK:")
+#         info_firebase = config.get_firebase_info()
+#         centralina = info_firebase['ID_CENTRALINA']
 
 	
 
 
-        send_flask(centralina, valori, polygon, squares, data_sensor, timestamp)
+#         send_flask(centralina, valori, polygon, squares, data_sensor, timestamp)
 
-    # Verifico se ThingSpeak è attivo per poter inviare il dato a ThingSpeak:
-    if config.get_thingspeak():
-        STR_DEBUG = ""
-        STR_DEBUG += update_str_debug("\n\n\n---- CONTINUA ESECUZIONE send_data: ")
-        STR_DEBUG += update_str_debug("ThingSpeak attivo ")
+#     # Verifico se ThingSpeak è attivo per poter inviare il dato a ThingSpeak:
+#     if config.get_thingspeak():
+#         STR_DEBUG = ""
+#         STR_DEBUG += update_str_debug("\n\n\n---- CONTINUA ESECUZIONE send_data: ")
+#         STR_DEBUG += update_str_debug("ThingSpeak attivo ")
 
-        print("\n\nINVIO DATI SU THINGSPEAK:\n")
-        # recupero le info per inviare a ThingSpeak:
-        info_thingspeak = config.get_thingspeak_info()
+#         print("\n\nINVIO DATI SU THINGSPEAK:\n")
+#         # recupero le info per inviare a ThingSpeak:
+#         info_thingspeak = config.get_thingspeak_info()
 
-        send_thinkspeak(info_thingspeak,valori)
+#         send_thinkspeak(info_thingspeak,valori)
 
 # Funzione main:
-def invio_dati(valori):
+
     # Lettura dal file configurazione e creazione dell'oggetto "dati_configurazione"
-    dati_configurazione = CONFIG_CLASS.ConfigClass(lettura_file_configurazione())
+    #dati_configurazione = CONFIG_CLASS.ConfigClass(lettura_file_configurazione())
 
     # Invio dati:
-    send_data(dati_configurazione,valori,polygon,squares, data_sensor, timestamp)
+    #send_data(dati_configurazione,valori,polygon,squares, data_sensor, timestamp)
 
 
-if __name__ == '__main__':
-    valori = {"no2": 30,
-              "so2": 50,
-              "co": 316.0,
-              "cpuTemperature": 42.084,
-              "direzione_vento": 6,
-              "gas_m": 70,
-              "intensita_vento": 2,
-              "latitude": 45.06479159126726,
-              "longitude": 7.675323486328125,
-              "nt": 5.6316710782,
-              "pm1": 15.0,
-              "pm10": 21.0,
-              "pm2_5": 20.0,
-              "pressione": 987.82,
-              "programStatus": 33,
-              "temperatura": 27.87,
-              "umidita": 46.48,
-              "voc": 24.35}
+# if __name__ == '__main__':
+#     valori = {"no2": 30,
+#               "so2": 50,
+#               "co": 316.0,
+#               "cpuTemperature": 42.084,
+#               "direzione_vento": 6,
+#               "gas_m": 70,
+#               "intensita_vento": 2,
+#               "latitude": 45.06479159126726,
+#               "longitude": 7.675323486328125,
+#               "nt": 5.6316710782,
+#               "pm1": 15.0,
+#               "pm10": 21.0,
+#               "pm2_5": 20.0,
+#               "pressione": 987.82,
+#               "programStatus": 33,
+#               "temperatura": 27.87,
+#               "umidita": 46.48,
+#               "voc": 24.35}
 
-    invio_dati(valori)
+#     main()

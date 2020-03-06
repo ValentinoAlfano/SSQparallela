@@ -12,14 +12,14 @@ from py_ssq_sensor import ADS, ANEM, BME, FAN, GPS, HEATER, PMS
 #import py_ssq_sensor.ADS, py_ssq_sensor.ANEM, py_ssq_sensor.BME, py_ssq_sensor.FAN, py_ssq_sensor.GPS, py_ssq_sensor.HEATER, py_ssq_sensor.PMS
 import ExceptionHandler
 import utils
-import invio_dati
+#import invio_dati
 # import save_error_log_main
 import setNT
 
 # from dotenv import load_dotenv
 # load_dotenv()
-
 import os
+import sort_feed
 
 # url_auth = os.getenv("URL_AUTH")
 # SECRET_KEY = os.getenv("SECRET_KEY")
@@ -29,6 +29,7 @@ SECRET_KEY = "Gasrad98"
 
 
 # ------------ Funzione di DEBUG --------------
+STR_DEBUG = ""
 DEBUG = True
 
 
@@ -385,7 +386,7 @@ def main():
             "\nNessuna eccezione generata nella fase di \"INIZIALIZZAZIONE DEI SENSORI\".")
         time.sleep(2)
 
-        # ---------------------------------- CAMPIONAMENTO DEI DATI ---------------------------------------
+    # ---------------------------------- CAMPIONAMENTO DEI DATI ---------------------------------------
 
 	# rilevamento timestamp
 
@@ -869,7 +870,8 @@ def main():
             pprint.pprint(valori, indent=2)
             time.sleep(2)
 
-            invio_dati.send_data(CONFIG_DATA, valori,polygons,squares, data_sensor, timestamp)
+                  
+            creazione_dati_file(CONFIG_DATA, valori,polygons,squares, data_sensor, timestamp)
 
 
     if DEBUG:
@@ -901,5 +903,324 @@ if __name__ == '__main__':
         # Invoco la funzione "save_error" che mi salva l'errore verificato nel main:
         save_error(traceback.format_exc())
 
+# --------------------- FUNZIONI --------------------------:
+
+#ex send_flask() (parte di "costruzione" del file)
+def creazione_dati_file(centralina, valori, polygons, squares, data_sensor, timestamp):
+	global STR_DEBUG
+	
+	lat = valori['latitude']
+	lon = valori['longitude']
+	coordinate = (lat,lon)
+
+	STR_DEBUG += update_str_debug("\n INIZIO ESECUZIONE send_flask")
+	
+	#DATO CAMPIONATO
+	data_sample = creazione_data_request(centralina,polygons,coordinate,squares, timestamp,valori,data_sensor)	
+
+	#PRIMA DI SCRIVERE DEVO CONTROLLARE SE ESISTE GIA' IL FILE
+	#SE ESISTE DEVO LEGGERNE I PACCHETTI E POI RISCRIVERE LA LISTA COMPLETA COI DATI NUOVI
+	filename = utils.path + "DATABUFFER_" + timestamp[:10] + ".json"
+	buffer = []
+	print("Cerco il file in cui salvare i dati appena campionati...")
+	if os.path.exists(filename):
+		print("Trovato " + filename)
+		#Il file esiste già, quindi leggo i pacchetti che contiene, aggiungo in coda i dati campionati e riscrivo il file completo
+		print("Leggo i pacchetti in " + filename + " ...")
+		
+		with open(filename, "r") as fp:
+			data_sample_from_file = json.load(fp)
+		
+		print("Contiene " + str(len(data_sample_from_file)) + " pacchetti")
+		#AGGIUNGO I PACCHETTI ALLA LISTA TEMP
+		i = 0
+		
+		while len(data_sample_from_file):
+			i += 1
+			print("Pacchetto # " + str(i) + " aggiunto")
+			buffer.append(data_sample_from_file[0])
+			data_sample_from_file.pop(0)
+		print("Pacchetti aggiunti alla lista temp:" + str(i))	
+	else:
+		#SE NON ESISTE ANCORA IL FILE NON FARE NIENTE
+		print(filename + " non esiste ancora")
+	#IN CODA AGGIUNGO IL DATO CAMPIONATO ATTUALE
+	buffer.append(data_sample)
+	#SCRIVO LA LISTA BUFFER SU FILE
+	print("Scrittura su " + filename + " ...")
+	scrittura_file(filename, buffer)
+	print("Ho salvato i dati appena campionati in " + filename)
+	
+	if DEBUG:
+		try:
+			utils.checkPath(utils.path + "InvioDati_Log/")
+			fileName=utils.path+"InvioDati_Log/InvioDati_log_"+datetime.datetime.today().strftime('%d_%m_%Y')+".txt"
+			
+			with open(fileName,'a')as file:
+				file.write(STR_DEBUG)
+			print ("Stampa InvioDati_log.txt riuscita")
+		except:
+			print ("Stampa InvioDati_log.txt non riuscita")	
+
+# ex send_data()
+def creazione_dati(config,valori,polygon,squares, data_sensor, timestamp):
+    global STR_DEBUG
+    STR_DEBUG += update_str_debug("\n\n\n---- INIZIO ESECUZIONE send_data: ")
+
+    # Verifico se FLASK è attivo a "True" per poter inviare il dato a Flask:
+
+    if config.get_firebase():
+        STR_DEBUG += update_str_debug("Flask attivo ")
+
+        # recupero le info per inviare a Flask (nome della centralina):
+        print("\nINVIO DATI SU FLASK:")
+        info_firebase = config.get_firebase_info()
+        centralina = info_firebase['ID_CENTRALINA']           
+        
+        creazione_dati_file(centralina, valori, polygon, squares, data_sensor, timestamp)
+
+                # Verifico se ThingSpeak è attivo per poter inviare il dato a ThingSpeak:
+                # if config.get_thingspeak():
+                #     STR_DEBUG = ""
+                #     STR_DEBUG += update_str_debug("\n\n\n---- CONTINUA ESECUZIONE send_data: ")
+                #     STR_DEBUG += update_str_debug("ThingSpeak attivo ")
+
+                #     print("\n\nINVIO DATI SU THINGSPEAK:\n")
+                #     # recupero le info per inviare a ThingSpeak:
+                #     info_thingspeak = config.get_thingspeak_info()
+
+                #     send_thinkspeak(info_thingspeak,valori)
+
+# Funzione che costruisce il pattern da inserire nel Firebase:
+def creazione_data_request(centralina,polygons,coordinate,squares, timestamp, feeds, data_sensor):
+	
+	
+	cap_zona_square_groups = sort_feed.Sorting_AreasKM(squares, coordinate)
+	centralina=str(centralina)
+	cap_zona=cap_zona_square_groups['cap']+"_"+cap_zona_square_groups['zona']
+	square=str(cap_zona_square_groups['square'])
+	groups=cap_zona_square_groups['groups']
+	cap=cap_zona_square_groups['cap']	
+
+	#cap=cap_zona_square[:9]
+	#users=1
+	#users=data_sensor['data']['monitoring']['features']['properties']['group']
+	#zona_square=cap_zona_square[10:]
+	#zona=cap_zona_square[10:18]
+	#square=cap_zona_square[10:]
+
+	#timestamp_giornaliero=timestamp[:8]
+	#timestamp_orario=timestamp[:10]
+	#timestamp_instant=timestamp[:12]
+	
+	dati5=creazione_pattern_raw(centralina,cap,square,timestamp,feeds)
+	dati6=creazione_pattern_zona(centralina,cap_zona,square,timestamp,feeds)
+	dati7=creazione_pattern_today_squares(cap_zona,square,timestamp,feeds)
+	dati8=creazione_pattern_today_zone(cap_zona,timestamp,feeds)
+
+	dati={"queries":[dati5,dati6,dati7,dati8]}
+	
+	
+	dati['group']=groups
+
+	
+	return dati
+
+# Funzione che scrive sul file "DATABUFFER_YY_MM_DD.json"
+def scrittura_file(filename, dato):
+	try:	
+		#print("Provo a scrivere su " + filename)
+		with open(filename, 'w') as file:
+			json.dump(dato, file)
+
+		#print("\nFile " + filename + " aggiornato")
+	except Exception as e:		
+		print("\n ERRORE: scrittura del dato non riuscita")
+		print(e)
+
+#FUNZIONE PER LA CREAZIONE DELLE QUERY CON GLI ULTIMI VALORI RILEVATI DALLA CENTRALINA NEL MESE
+def creazione_pattern_today_zone(cap_zona,timestamp,feeds):
+
+	#anno_mese=timestamp[:6]
+	ora=timestamp[8:10]
+	
+	ora_pprec=str(int(ora)-2)
+	minuto=timestamp[10:12]
+	minuto_pprec=str(int(minuto)-2)
+	
+	weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+	
+	weekday=weekday.weekday()
+	
+	feeds2=dict(feeds)	
+	del feeds2['latitude']
+	del feeds2['longitude']
+	
+	if ora=='23':
+		weekday= (weekday+1) %7
+	
+	query={"_id": "Today_zone "+str(weekday)} 
+	new_dict={}
 
 
+	for d in feeds2:
+	   p=json.dumps(d)
+	   p=p[1:len(p)-1]
+	   sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
+	   new_dict[sum_]=feeds[d]
+	  
+	   count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
+	   new_dict[count]=1
+	   
+	   sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+	   new_dict[sum_]=feeds[d]
+
+	   count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+	   new_dict[count]=1
+	   
+	update={"$inc": new_dict, "$unset": {cap_zona+".medie_hourly."+ora+".instantly."+minuto_pprec: "", cap_zona+".medie_hourly."+ora_pprec: ""}}
+	result={"data":[query,update]}
+	
+	return result
+	
+def creazione_pattern_today_squares(cap_zona,squareid,timestamp,feeds):
+
+	#anno_mese=timestamp[:6]
+	ora=timestamp[8:10]
+	
+	ora_pprec=str(int(ora)-2)
+	minuto=timestamp[10:12]
+	minuto_pprec=str(int(minuto)-2)
+	
+	weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+	
+	weekday=weekday.weekday()
+	
+	feeds2=dict(feeds)	
+	del feeds2['latitude']
+	del feeds2['longitude']
+	
+	if ora=='23':
+		weekday= (weekday+1) %7
+	
+	query={"_id": "Today_squares "+str(weekday)}
+	new_dict={}
+
+	for d in feeds2:
+	   p=json.dumps(d)
+	   p=p[1:len(p)-1]
+	   sum_=cap_zona+"."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+	   new_dict[sum_]=feeds[d]
+	   
+	   count=cap_zona+"."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+	   new_dict[count]=1
+		
+	   sum_=cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+	   new_dict[sum_]=feeds[d]
+
+	   count=cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+	   new_dict[count]=1
+	
+	update={"$inc": new_dict, "$unset": {cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto_pprec: "", cap_zona+"."+squareid+".medie_hourly."+ora_pprec: ""}}
+	result={"data":[query,update]}
+	
+	return result
+
+def creazione_pattern_raw(centralina,cap,square,timestamp,feeds):
+	result={}
+	anno_mese=timestamp[:6]
+	minuto=timestamp[:12]
+	
+	query_raw={"centralina": centralina, "timestamp": anno_mese}
+	update_raw={"$set": { minuto : { "feeds": feeds, "cap": cap, "zona_square": square } }}
+	
+
+	result={"data":[query_raw,update_raw]}
+	
+	return result
+
+def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
+	
+	feeds2=dict(feeds)	
+	del feeds2['latitude']
+	del feeds2['longitude']
+
+	result={}
+	new_dict={}
+	epoch=datetime.datetime.utcfromtimestamp(0)        
+	now=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+	days_from_epoch=(now-epoch).days
+	#squareid=zona_square[8:]
+	#zona=zona_square[:8]
+	#cap_zona=cap_zona_square[:17]
+	#squareid=cap_zona_square[18:]
+	#giorno=timestamp[:8]
+	ora=timestamp[8:10]	
+	minuto=timestamp[10:12]
+	print(cap_zona)
+	print(squareid)
+
+	weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+	
+	weekday=weekday.weekday()
+
+	query_next_day={"_id": weekday+1 , "date": days_from_epoch }
+	query_today={"_id": weekday, "date": days_from_epoch}
+
+    #creo la query per il pattern del giorno dopo
+	for d in feeds2:
+		p=json.dumps(d)
+		p=p[1:len(p)-1]
+
+		#sum_=cap+"."+zona+".medie_daily."+p+".sum"
+		sum_=cap_zona+".medie_daily."+p+".sum"
+		new_dict[sum_]=feeds[d]
+		#count=cap+"."+zona+".medie_daily."+p+".count"
+		count=cap_zona+".medie_daily."+p+".count"
+		new_dict[count]=1
+		#sum_=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
+		sum_=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
+		new_dict[sum_]=feeds[d]
+		#count=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
+		count=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
+		new_dict[count]=1
+	new_values_nd={"$inc":new_dict}
+
+	new_dict={}
+	
+    #creo pattern per la query del giorno attuale
+	for d in feeds2:
+		p=json.dumps(d)
+		p=p[1:len(p)-1]
+		
+		#sum_=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".sum"
+		sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
+		new_dict[sum_]=feeds[d]
+		#count=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".count"
+		count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
+		new_dict[count]=1
+		#sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+		sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+		new_dict[sum_]=feeds[d]
+		#count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+		count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+		new_dict[count]=1
+
+		#sum_=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+		sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+		new_dict[sum_]=feeds[d]
+		#sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+		sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+		new_dict[sum_]=feeds[d]		
+		#count=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+		count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+		new_dict[count]=1
+		#count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+		count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+		new_dict[count]=1
+
+	new_values_td={"$inc":new_dict}
+
+	result = {"data":[[query_next_day,new_values_nd],[query_today,new_values_td]]}
+	
+	return result
