@@ -22,6 +22,7 @@ SECRET_KEY = "Gasrad98"
 URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
 
+STR_DEBUG = ""
 DEBUG = True
 
 with codecs.open(utils.path+"config.json", "r", encoding="latin1") as file:
@@ -136,14 +137,10 @@ def send_flask(data_sensor):
 		except:
 			print ("Stampa InvioDati_log.txt non riuscita")	
 # MAIN
-while True:
-	send_flask(data_sensor)
-	time.sleep(5)
-# ------------ Funzione di DEBUG --------------
-STR_DEBUG = ""
-DEBUG=True
-
-
+def main():
+        while True:
+		send_flask(data_sensor)
+		time.sleep(5)
 
 # --------------------- FUNZIONI --------------------------:
 
@@ -752,7 +749,7 @@ def lettura_file_configurazione():
     # send_data(dati_configurazione,valori,polygon,squares, data_sensor, timestamp)
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 #     valori = {"no2": 30,
 #               "so2": 50,
 #               "co": 316.0,
@@ -772,4 +769,4 @@ def lettura_file_configurazione():
 #               "umidita": 46.48,
 #               "voc": 24.35}
 
-#     main()
+    main()
