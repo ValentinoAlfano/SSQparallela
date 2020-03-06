@@ -17,7 +17,8 @@ import SSQ_INDEX
 
 
 # VARIABILI GLOBALI:
-
+url_auth = "http://192.168.2.144:5000/auth_sensor"
+SECRET_KEY = "Gasrad98"
 
 URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
@@ -26,7 +27,7 @@ with codecs.open(utils.path+"config.json", "r", encoding="latin1") as file:
         __config = json.load(file)
 
 centralina = __config['FIREBASE_INFO']['ID_CENTRALINA']
-data_sensor = utils.authflask(SSQ_INDEX.url_auth, SSQ_INDEX.SECRET_KEY, centralina)
+data_sensor = utils.authflask(url_auth, SECRET_KEY, centralina)
 
 def send_flask(data_sensor):
 	STR_DEBUG = ""
