@@ -12,7 +12,7 @@ import utils
 import os
 from pathlib import Path
 import random
-from SSQ_INDEX import data_sensor
+import SSQ_INDEX
 
 
 
@@ -25,7 +25,7 @@ URL_Flask_File = "http://192.168.2.144:5000/send_file"
 
 # MAIN
 while True:
-	send_flask(data_sensor)
+	send_flask(SSQ_INDEX.data_sensor)
 	time.sleep(5)
 # ------------ Funzione di DEBUG --------------
 STR_DEBUG = ""
