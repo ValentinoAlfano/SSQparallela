@@ -3,7 +3,7 @@
 import json
 import time
 import requests
-#import firebase
+# import firebase
 import datetime
 import codecs
 import sort_feed
@@ -12,8 +12,7 @@ import utils
 import os
 from pathlib import Path
 import random
-#import SSQ_INDEX
-
+# import SSQ_INDEX
 
 
 # VARIABILI GLOBALI:
@@ -29,19 +28,23 @@ with codecs.open(utils.path+"config.json", "r", encoding="latin1") as file:
 centralina = __config['FIREBASE_INFO']['ID_CENTRALINA']
 data_sensor = utils.authflask(url_auth, SECRET_KEY, centralina)
 
+
 def update_str_debug(messaggio):
     tempo = datetime.datetime.today().strftime("%H:%M:%S")
     stringa_debug = messaggio + "(" + tempo + ")" + "\n"
     return stringa_debug
 
+
 def check_internet():
-    try:
-		risposta=requests.get("http://www.google.com/")
+	try:
+		risposta = requests.get("http://www.google.com/")
 		if risposta.status_code == 200:
-			print("Connessione Riuscita: "+ str(risposta.status_code) + " " + str(risposta.reason))
+			print("Connessione Riuscita: " +
+			      str(risposta.status_code) + " " + str(risposta.reason))
 			return True
 		else:
-			print("Connessione Fallita: " + str(risposta.status_code) + " " + str(risposta.reason))
+			print("Connessione Fallita: " +
+			      str(risposta.status_code) + " " + str(risposta.reason))
 		return False
 	except Exception:
 		print("ERRORE CONNESSIONE")
@@ -50,7 +53,7 @@ def send_flask(data_sensor):
 	STR_DEBUG = ""
 	global DEBUG
 	
-	#Faccio 3 tentativi di connessione
+	# Faccio 3 tentativi di connessione
 	
 	tentativo_conn = 0
 	
@@ -62,21 +65,21 @@ def send_flask(data_sensor):
 		
 		if connessione:
 			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
-			#LEGGO LISTA FILE PRECEDENTI DA INVIARE
+			# LEGGO LISTA FILE PRECEDENTI DA INVIARE
 			print("Lettura lista file da inviare...")
-			#LA LISTA TORNA GIA' ORDINATA CRONOLOGICAMENTE
+			# LA LISTA TORNA GIA' ORDINATA CRONOLOGICAMENTE
 			file_list = utils.check_databuffer()
 
 			
 			for file in file_list:
 					start_time = time.time()
 					with open(file, "r") as fp:
-						#CARICO PACCHETTI DA FILE
+						# CARICO PACCHETTI DA FILE
 						data_sample_from_file = json.load(fp)	
 					print("Leggo: " + file + " ...")
 					print("Contiene " + str(len(data_sample_from_file)) + " pacchetti")
 		
-					#se pacchetti < 10 -----> invio_dati_flask_str()
+					# se pacchetti < 10 -----> invio_dati_flask_str()
 					if len(data_sample_from_file) < 10:
 							
 						i = 0
@@ -93,18 +96,18 @@ def send_flask(data_sensor):
 						print("Invio completato in %s secondi " % round((time.time() - start_time)))
 						if len(data_sample_from_file) == 0:
 							print("Ho inviato tutti i pacchetti trovati in " + file)
-							#SE ENTRO QUI, HO MANDATO TUTTO IL CONTENUTO DEL FILE
+							# SE ENTRO QUI, HO MANDATO TUTTO IL CONTENUTO DEL FILE
 							STR_DEBUG += update_str_debug("DATABUFFER svuotato")
-							#cancello file corrente
+							# cancello file corrente
 							print("Elimino " + file)
 							os.remove(file)					
 						else:
-							#riscrivo i pacchetti che non sono riuscito a inviare nello stesso file
+							# riscrivo i pacchetti che non sono riuscito a inviare nello stesso file
 							scrittura_file(file, data_sample_from_file)
 							print("Ho riscritto i pacchetti che non sono riuscito a inviare in " + file)
 							break
 					else:
-						#se pacchetti >= 10 ------> invio_dati_flask_file()
+						# se pacchetti >= 10 ------> invio_dati_flask_file()
 						start_time = time.time()
 						esitoInvio = invio_dati_flask_file(file, data_sensor)
 						if esitoInvio:
@@ -113,7 +116,7 @@ def send_flask(data_sensor):
 						else:
 							print("File: " + file + " non inviato")
 							break
-			#tentativo_conn = tentativo_conn + 1				
+			# tentativo_conn = tentativo_conn + 1				
 			break
 		else:
 			print("Tentativo di connessione n. " + str(tentativo_conn + 1) + " fallito")
@@ -152,11 +155,11 @@ def check_internet_random():
 # Funzione che scrive sul file "DATABUFFER_YY_MM_DD.json"
 def scrittura_file(filename, dato):
 	try:	
-		#print("Provo a scrivere su " + filename)
+		# print("Provo a scrivere su " + filename)
 		with open(filename, 'w') as file:
 			json.dump(dato, file)
 
-		#print("\nFile " + filename + " aggiornato")
+		# print("\nFile " + filename + " aggiornato")
 	except Exception as e:		
 		print("\n ERRORE: scrittura del dato non riuscita")
 		print(e)
@@ -178,10 +181,10 @@ def recupero_data(t):
 
     return data
 
-#FUNZIONE PER LA CREAZIONE DELLE QUERY CON GLI ULTIMI VALORI RILEVATI DALLA CENTRALINA NEL MESE
+# FUNZIONE PER LA CREAZIONE DELLE QUERY CON GLI ULTIMI VALORI RILEVATI DALLA CENTRALINA NEL MESE
 def creazione_pattern_today_zone(cap_zona,timestamp,feeds):
 
-	#anno_mese=timestamp[:6]
+	# anno_mese=timestamp[:6]
 	ora=timestamp[8:10]
 	
 	ora_pprec=str(int(ora)-2)
@@ -225,7 +228,7 @@ def creazione_pattern_today_zone(cap_zona,timestamp,feeds):
 	
 def creazione_pattern_today_squares(cap_zona,squareid,timestamp,feeds):
 
-	#anno_mese=timestamp[:6]
+	# anno_mese=timestamp[:6]
 	ora=timestamp[8:10]
 	
 	ora_pprec=str(int(ora)-2)
@@ -292,11 +295,11 @@ def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
 	epoch=datetime.datetime.utcfromtimestamp(0)        
 	now=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
 	days_from_epoch=(now-epoch).days
-	#squareid=zona_square[8:]
-	#zona=zona_square[:8]
-	#cap_zona=cap_zona_square[:17]
-	#squareid=cap_zona_square[18:]
-	#giorno=timestamp[:8]
+	# squareid=zona_square[8:]
+	# zona=zona_square[:8]
+	# cap_zona=cap_zona_square[:17]
+	# squareid=cap_zona_square[18:]
+	# giorno=timestamp[:8]
 	ora=timestamp[8:10]	
 	minuto=timestamp[10:12]
 	print(cap_zona)
@@ -309,55 +312,55 @@ def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
 	query_next_day={"_id": weekday+1 , "date": days_from_epoch }
 	query_today={"_id": weekday, "date": days_from_epoch}
 
-	#creo la query per il pattern del giorno dopo
+	# creo la query per il pattern del giorno dopo
 	for d in feeds2:
 		p=json.dumps(d)
 		p=p[1:len(p)-1]
 
-		#sum_=cap+"."+zona+".medie_daily."+p+".sum"
+		# sum_=cap+"."+zona+".medie_daily."+p+".sum"
 		sum_=cap_zona+".medie_daily."+p+".sum"
 		new_dict[sum_]=feeds[d]
-		#count=cap+"."+zona+".medie_daily."+p+".count"
+		# count=cap+"."+zona+".medie_daily."+p+".count"
 		count=cap_zona+".medie_daily."+p+".count"
 		new_dict[count]=1
-		#sum_=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
+		# sum_=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
 		sum_=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
 		new_dict[sum_]=feeds[d]
-		#count=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
+		# count=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
 		count=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
 		new_dict[count]=1
 	new_values_nd={"$inc":new_dict}
 
 	new_dict={}
 	
-	#creo pattern per la query del giorno attuale
+	# creo pattern per la query del giorno attuale
 	for d in feeds2:
 		p=json.dumps(d)
 		p=p[1:len(p)-1]
 		
-		#sum_=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".sum"
+		# sum_=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".sum"
 		sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
 		new_dict[sum_]=feeds[d]
-		#count=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".count"
+		# count=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".count"
 		count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
 		new_dict[count]=1
-		#sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+		# sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
 		sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
 		new_dict[sum_]=feeds[d]
-		#count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+		# count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
 		count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
 		new_dict[count]=1
 
-		#sum_=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+		# sum_=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
 		sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
 		new_dict[sum_]=feeds[d]
-		#sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+		# sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
 		sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
 		new_dict[sum_]=feeds[d]		
-		#count=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+		# count=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
 		count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
 		new_dict[count]=1
-		#count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+		# count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
 		count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
 		new_dict[count]=1
 
@@ -380,16 +383,16 @@ def creazione_data_request(centralina,polygons,coordinate,squares, timestamp, fe
 	groups=cap_zona_square_groups['groups']
 	cap=cap_zona_square_groups['cap']	
 
-	#cap=cap_zona_square[:9]
-	#users=1
-	#users=data_sensor['data']['monitoring']['features']['properties']['group']
-	#zona_square=cap_zona_square[10:]
-	#zona=cap_zona_square[10:18]
-	#square=cap_zona_square[10:]
+	# cap=cap_zona_square[:9]
+	# users=1
+	# users=data_sensor['data']['monitoring']['features']['properties']['group']
+	# zona_square=cap_zona_square[10:]
+	# zona=cap_zona_square[10:18]
+	# square=cap_zona_square[10:]
 
-	#timestamp_giornaliero=timestamp[:8]
-	#timestamp_orario=timestamp[:10]
-	#timestamp_instant=timestamp[:12]
+	# timestamp_giornaliero=timestamp[:8]
+	# timestamp_orario=timestamp[:10]
+	# timestamp_instant=timestamp[:12]
 	
 	dati5=creazione_pattern_raw(centralina,cap,square,timestamp,feeds)
 	dati6=creazione_pattern_zona(centralina,cap_zona,square,timestamp,feeds)
@@ -404,7 +407,7 @@ def creazione_data_request(centralina,polygons,coordinate,squares, timestamp, fe
 	
 	return dati
 	
-#Funzione che invia la singola stringa a Flask
+# Funzione che invia la singola stringa a Flask
 def invio_dati_flask_str(data, data_sensor):
 	
 	global STR_DEBUG
@@ -413,7 +416,7 @@ def invio_dati_flask_str(data, data_sensor):
 		STR_DEBUG += update_str_debug("\nINIZIO ESECUZIONE invio_dati_flask: ")
 
 		conn=check_internet()
-		#conn=False
+		# conn=False
 		if conn:
 			STR_DEBUG += update_str_debug("\n CONNESSIONE RIUSCITA: invio oggetto ")
 			
@@ -437,7 +440,7 @@ def invio_dati_flask_str(data, data_sensor):
 		print (e)
 	return False
 
-#Funzione che invia direttamente il file a Flask - DA RIVEDERE NON FUNZIONA
+# Funzione che invia direttamente il file a Flask - DA RIVEDERE NON FUNZIONA
 def invio_dati_flask_file(file, data_sensor):
 	global STR_DEBUG
 
@@ -445,18 +448,18 @@ def invio_dati_flask_file(file, data_sensor):
 		STR_DEBUG += update_str_debug("\nINIZIO ESECUZIONE invio_dati_flask: ")
 
 		conn = check_internet()
-		#conn=False
+		# conn=False
 		if conn:
 			STR_DEBUG += update_str_debug("\n CONNESSIONE RIUSCITA: invio oggetto ")
 			
-			#data = json.dumps(file)                       #formatta in JSON                 
-			#file_to_upload = {'file': open(file, 'rb')}
-			#file_to_upload = open(file, 'rb')
+			# data = json.dumps(file)                       #formatta in JSON                 
+			# file_to_upload = {'file': open(file, 'rb')}
+			# file_to_upload = open(file, 'rb')
 			with open(file, 'rb') as fp:
 				file_to_upload = {'file': fp}
 				headers = {'Authorization': 'Bearer '+ data_sensor['data']['token']}
 				requests.post(URL_Flask_File, files = file_to_upload, headers = headers)
-			#print(requests.get(URL_Flask).status_code)
+			# print(requests.get(URL_Flask).status_code)
 			print("Salvataggio oggetto riuscito")
 			
 			return True
@@ -595,10 +598,10 @@ def invio_dati_flask_file(file, data_sensor):
 # 		except:
 # 			print ("Stampa InvioDati_log.txt non riuscita")
 
-#Funzione che scrive su file i dati e procede al caricamento dei file vecchi
+# Funzione che scrive su file i dati e procede al caricamento dei file vecchi
 
 
-#----------------------- FUNZIONI per ThingSpeak ------------------------------:
+# ----------------------- FUNZIONI per ThingSpeak ------------------------------:
 
 # Funzione che ritorna url per ThingSpeak:
 # def url_thingspeak(dati,api,vettore):
@@ -684,7 +687,7 @@ def invio_dati_flask_file(file, data_sensor):
 
 
 
-#------------------------- FUNZIONI per il main --------------------------------------:
+# ------------------------- FUNZIONI per il main --------------------------------------:
 
 # Lettura file di configurazione, restituisce tutti i dati del file di configurazione:
 def lettura_file_configurazione():
@@ -741,10 +744,10 @@ def lettura_file_configurazione():
 # Funzione main:
 
     # Lettura dal file configurazione e creazione dell'oggetto "dati_configurazione"
-    #dati_configurazione = CONFIG_CLASS.ConfigClass(lettura_file_configurazione())
+    # dati_configurazione = CONFIG_CLASS.ConfigClass(lettura_file_configurazione())
 
     # Invio dati:
-    #send_data(dati_configurazione,valori,polygon,squares, data_sensor, timestamp)
+    # send_data(dati_configurazione,valori,polygon,squares, data_sensor, timestamp)
 
 
 # if __name__ == '__main__':
