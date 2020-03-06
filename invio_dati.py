@@ -33,7 +33,19 @@ def update_str_debug(messaggio):
     tempo = datetime.datetime.today().strftime("%H:%M:%S")
     stringa_debug = messaggio + "(" + tempo + ")" + "\n"
     return stringa_debug
-	
+
+def check_internet():
+    	try:
+		risposta=requests.get("http://www.google.com/")
+		if risposta.status_code == 200:
+			print("Connessione Riuscita: "+ str(risposta.status_code) + " " + str(risposta.reason))
+			return True
+		else:
+			print("Connessione Fallita: " + str(risposta.status_code) + " " + str(risposta.reason))
+		return False
+	except Exception:
+		print("ERRORE CONNESSIONE")
+
 def send_flask(data_sensor):
 	STR_DEBUG = ""
 	global DEBUG
@@ -136,18 +148,6 @@ def check_internet_false():
 
 def check_internet_random():
 	return bool(random.getrandbits(1))
-
-def check_internet():
-	try:
-		risposta=requests.get("http://www.google.com/")
-		if risposta.status_code == 200:
-			print("Connessione Riuscita: "+ str(risposta.status_code) + " " + str(risposta.reason))
-			return True
-		else:
-			print("Connessione Fallita: " + str(risposta.status_code) + " " + str(risposta.reason))
-		return False
-	except Exception:
-		print("ERRORE CONNESSIONE")
 	
 # Funzione che scrive sul file "DATABUFFER_YY_MM_DD.json"
 def scrittura_file(filename, dato):
