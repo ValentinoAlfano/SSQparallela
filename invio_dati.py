@@ -21,6 +21,8 @@ import SSQ_INDEX
 
 URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
+centralina = SSQ_INDEX.__config['FIREBASE_INFO']['ID_CENTRALINA']
+data_sensor = utils.authflask(SSQ_INDEX.url_auth, SSQ_INDEX.SECRET_KEY, centralina)
 
 def send_flask(data_sensor):
 	STR_DEBUG = ""
