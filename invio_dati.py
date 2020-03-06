@@ -23,7 +23,7 @@ URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
 
 def send_flask(data_sensor):
-    	global STR_DEBUG
+	STR_DEBUG = ""
 	global DEBUG
 	
 	#Faccio 3 tentativi di connessione
@@ -43,7 +43,7 @@ def send_flask(data_sensor):
 			#LA LISTA TORNA GIA' ORDINATA CRONOLOGICAMENTE
 			file_list = utils.check_databuffer()
 
-			#if file_list: #altrimenti resta bloccato nel while dopo l'ultimo file
+			
 			for file in file_list:
 					start_time = time.time()
 					with open(file, "r") as fp:
