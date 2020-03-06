@@ -22,6 +22,8 @@ SECRET_KEY = "Gasrad98"
 URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
 
+DEBUG = True
+
 with codecs.open(utils.path+"config.json", "r", encoding="latin1") as file:
         __config = json.load(file)
 
