@@ -29,6 +29,11 @@ with codecs.open(utils.path+"config.json", "r", encoding="latin1") as file:
 centralina = __config['FIREBASE_INFO']['ID_CENTRALINA']
 data_sensor = utils.authflask(url_auth, SECRET_KEY, centralina)
 
+def update_str_debug(messaggio):
+    tempo = datetime.datetime.today().strftime("%H:%M:%S")
+    stringa_debug = messaggio + "(" + tempo + ")" + "\n"
+    return stringa_debug
+	
 def send_flask(data_sensor):
 	STR_DEBUG = ""
 	global DEBUG
@@ -120,11 +125,6 @@ while True:
 # ------------ Funzione di DEBUG --------------
 STR_DEBUG = ""
 DEBUG=True
-
-def update_str_debug(messaggio):
-    tempo = datetime.datetime.today().strftime("%H:%M:%S")
-    stringa_debug = messaggio + "(" + tempo + ")" + "\n"
-    return stringa_debug
 
 
 
