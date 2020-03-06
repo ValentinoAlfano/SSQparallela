@@ -22,7 +22,90 @@ import SSQ_INDEX
 URL_Flask = "http://192.168.2.144:5000/send_sample_ssq"
 URL_Flask_File = "http://192.168.2.144:5000/send_file"
 
+def send_flask(data_sensor):
+    	global STR_DEBUG
+	global DEBUG
+	
+	#Faccio 3 tentativi di connessione
+	
+	tentativo_conn = 0
+	
+	while tentativo_conn < 3:
+		print("Tentativo di connessione numero:" + str(tentativo_conn + 1))
+		STR_DEBUG += update_str_debug("\n Tentativo connessione numero:" + str(tentativo_conn + 1)+ " ")
+		connessione = check_internet()
+		print("Stato connessione: " + str(connessione))
+		
+		if connessione:
+			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
+			#LEGGO LISTA FILE PRECEDENTI DA INVIARE
+			print("Lettura lista file da inviare...")
+			#LA LISTA TORNA GIA' ORDINATA CRONOLOGICAMENTE
+			file_list = utils.check_databuffer()
 
+			#if file_list: #altrimenti resta bloccato nel while dopo l'ultimo file
+			for file in file_list:
+					start_time = time.time()
+					with open(file, "r") as fp:
+						#CARICO PACCHETTI DA FILE
+						data_sample_from_file = json.load(fp)	
+					print("Leggo: " + file + " ...")
+					print("Contiene " + str(len(data_sample_from_file)) + " pacchetti")
+		
+					#se pacchetti < 10 -----> invio_dati_flask_str()
+					if len(data_sample_from_file) < 10:
+							
+						i = 0
+						while len(data_sample_from_file):
+							esitoInvio = invio_dati_flask_str(data_sample_from_file[0],data_sensor)
+							if esitoInvio:
+								print("Pacchetto #" + str(i + 1) + " inviato\n")
+								i += 1
+								data_sample_from_file.pop(0)
+							else:
+								print("Pacchetto #" + str(i + 1) + " non inviato\n")
+								break
+						print("Numero pacchetti inviati:" + str(i))
+						print("Invio completato in %s secondi " % round((time.time() - start_time)))
+						if len(data_sample_from_file) == 0:
+							print("Ho inviato tutti i pacchetti trovati in " + file)
+							#SE ENTRO QUI, HO MANDATO TUTTO IL CONTENUTO DEL FILE
+							STR_DEBUG += update_str_debug("DATABUFFER svuotato")
+							#cancello file corrente
+							print("Elimino " + file)
+							os.remove(file)					
+						else:
+							#riscrivo i pacchetti che non sono riuscito a inviare nello stesso file
+							scrittura_file(file, data_sample_from_file)
+							print("Ho riscritto i pacchetti che non sono riuscito a inviare in " + file)
+							break
+					else:
+						#se pacchetti >= 10 ------> invio_dati_flask_file()
+						start_time = time.time()
+						esitoInvio = invio_dati_flask_file(file, data_sensor)
+						if esitoInvio:
+							print("File: " + file + " inviato in %s secondi " % round((time.time() - start_time)))
+							os.remove(file)
+						else:
+							print("File: " + file + " non inviato")
+							break
+			#tentativo_conn = tentativo_conn + 1				
+			break
+		else:
+			print("Tentativo di connessione n. " + str(tentativo_conn + 1) + " fallito")
+			tentativo_conn = tentativo_conn + 1
+			time.sleep(1)
+	
+	if DEBUG:
+		try:
+			utils.checkPath(utils.path + "InvioDati_Log/")
+			fileName=utils.path+"InvioDati_Log/InvioDati_log_"+datetime.datetime.today().strftime('%d_%m_%Y')+".txt"
+			
+			with open(fileName,'a')as file:
+				file.write(STR_DEBUG)
+			print ("Stampa InvioDati_log.txt riuscita")
+		except:
+			print ("Stampa InvioDati_log.txt non riuscita")	
 # MAIN
 while True:
 	send_flask(SSQ_INDEX.data_sensor)
@@ -506,90 +589,7 @@ def invio_dati_flask_file(file, data_sensor):
 # 			print ("Stampa InvioDati_log.txt non riuscita")
 
 #Funzione che scrive su file i dati e procede al caricamento dei file vecchi
-def send_flask(data_sensor):
-	global STR_DEBUG
-	global DEBUG
-	
-	#Faccio 3 tentativi di connessione
-	
-	tentativo_conn = 0
-	
-	while tentativo_conn < 3:
-		print("Tentativo di connessione numero:" + str(tentativo_conn + 1))
-		STR_DEBUG += update_str_debug("\n Tentativo connessione numero:" + str(tentativo_conn + 1)+ " ")
-		connessione = check_internet()
-		print("Stato connessione: " + str(connessione))
-		
-		if connessione:
-			STR_DEBUG += update_str_debug("Connessione riuscita: invio dati")
-			#LEGGO LISTA FILE PRECEDENTI DA INVIARE
-			print("Lettura lista file da inviare...")
-			#LA LISTA TORNA GIA' ORDINATA CRONOLOGICAMENTE
-			file_list = utils.check_databuffer()
 
-			#if file_list: #altrimenti resta bloccato nel while dopo l'ultimo file
-			for file in file_list:
-					start_time = time.time()
-					with open(file, "r") as fp:
-						#CARICO PACCHETTI DA FILE
-						data_sample_from_file = json.load(fp)	
-					print("Leggo: " + file + " ...")
-					print("Contiene " + str(len(data_sample_from_file)) + " pacchetti")
-		
-					#se pacchetti < 10 -----> invio_dati_flask_str()
-					if len(data_sample_from_file) < 10:
-							
-						i = 0
-						while len(data_sample_from_file):
-							esitoInvio = invio_dati_flask_str(data_sample_from_file[0],data_sensor)
-							if esitoInvio:
-								print("Pacchetto #" + str(i + 1) + " inviato\n")
-								i += 1
-								data_sample_from_file.pop(0)
-							else:
-								print("Pacchetto #" + str(i + 1) + " non inviato\n")
-								break
-						print("Numero pacchetti inviati:" + str(i))
-						print("Invio completato in %s secondi " % round((time.time() - start_time)))
-						if len(data_sample_from_file) == 0:
-							print("Ho inviato tutti i pacchetti trovati in " + file)
-							#SE ENTRO QUI, HO MANDATO TUTTO IL CONTENUTO DEL FILE
-							STR_DEBUG += update_str_debug("DATABUFFER svuotato")
-							#cancello file corrente
-							print("Elimino " + file)
-							os.remove(file)					
-						else:
-							#riscrivo i pacchetti che non sono riuscito a inviare nello stesso file
-							scrittura_file(file, data_sample_from_file)
-							print("Ho riscritto i pacchetti che non sono riuscito a inviare in " + file)
-							break
-					else:
-						#se pacchetti >= 10 ------> invio_dati_flask_file()
-						start_time = time.time()
-						esitoInvio = invio_dati_flask_file(file, data_sensor)
-						if esitoInvio:
-							print("File: " + file + " inviato in %s secondi " % round((time.time() - start_time)))
-							os.remove(file)
-						else:
-							print("File: " + file + " non inviato")
-							break
-			#tentativo_conn = tentativo_conn + 1				
-			break
-		else:
-			print("Tentativo di connessione n. " + str(tentativo_conn + 1) + " fallito")
-			tentativo_conn = tentativo_conn + 1
-			time.sleep(1)
-	
-	if DEBUG:
-		try:
-			utils.checkPath(utils.path + "InvioDati_Log/")
-			fileName=utils.path+"InvioDati_Log/InvioDati_log_"+datetime.datetime.today().strftime('%d_%m_%Y')+".txt"
-			
-			with open(fileName,'a')as file:
-				file.write(STR_DEBUG)
-			print ("Stampa InvioDati_log.txt riuscita")
-		except:
-			print ("Stampa InvioDati_log.txt non riuscita")	
 
 #----------------------- FUNZIONI per ThingSpeak ------------------------------:
 
