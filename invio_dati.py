@@ -35,7 +35,7 @@ def update_str_debug(messaggio):
     return stringa_debug
 
 def check_internet():
-    	try:
+    try:
 		risposta=requests.get("http://www.google.com/")
 		if risposta.status_code == 200:
 			print("Connessione Riuscita: "+ str(risposta.status_code) + " " + str(risposta.reason))
