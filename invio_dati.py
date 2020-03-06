@@ -138,9 +138,9 @@ def send_flask(data_sensor):
 			print ("Stampa InvioDati_log.txt non riuscita")	
 # MAIN
 def main():
-        while True:
-		send_flask(data_sensor)
-		time.sleep(5)
+		while True:
+			send_flask(data_sensor)
+			time.sleep(5)
 
 # --------------------- FUNZIONI --------------------------:
 
