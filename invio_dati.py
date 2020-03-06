@@ -12,7 +12,7 @@ import utils
 import os
 from pathlib import Path
 import random
-import SSQ_INDEX
+#import SSQ_INDEX
 
 
 
@@ -115,7 +115,7 @@ def send_flask(data_sensor):
 			print ("Stampa InvioDati_log.txt non riuscita")	
 # MAIN
 while True:
-	send_flask(SSQ_INDEX.data_sensor)
+	send_flask(data_sensor)
 	time.sleep(5)
 # ------------ Funzione di DEBUG --------------
 STR_DEBUG = ""
