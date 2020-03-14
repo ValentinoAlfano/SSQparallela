@@ -182,245 +182,245 @@ def scrittura_file(filename, dato):
 
 
 # Funzione che ci restituisce la data in un vettore[anno, mese, giorno, ecc.]
-def recupero_data(t):
-    tempo_fromtimestamp = datetime.datetime.fromtimestamp(t)
+# def recupero_data(t):
+#     tempo_fromtimestamp = datetime.datetime.fromtimestamp(t)
 
-    year = tempo_fromtimestamp.strftime('%Y')
-    month = tempo_fromtimestamp.strftime('%m')
-    day = tempo_fromtimestamp.strftime('%d')
-    hour = tempo_fromtimestamp.strftime('%H')
-    minute = tempo_fromtimestamp.strftime('%M')
-    second = tempo_fromtimestamp.strftime('%S')
+#     year = tempo_fromtimestamp.strftime('%Y')
+#     month = tempo_fromtimestamp.strftime('%m')
+#     day = tempo_fromtimestamp.strftime('%d')
+#     hour = tempo_fromtimestamp.strftime('%H')
+#     minute = tempo_fromtimestamp.strftime('%M')
+#     second = tempo_fromtimestamp.strftime('%S')
 
-    data = [year, month, day, hour, minute, second]
+#     data = [year, month, day, hour, minute, second]
 
-    return data
+#     return data
 
 # FUNZIONE PER LA CREAZIONE DELLE QUERY CON GLI ULTIMI VALORI RILEVATI DALLA CENTRALINA NEL MESE
-def creazione_pattern_today_zone(cap_zona,timestamp,feeds):
+# def creazione_pattern_today_zone(cap_zona,timestamp,feeds):
 
-        # anno_mese=timestamp[:6]
-        ora=timestamp[8:10]
+#         # anno_mese=timestamp[:6]
+#         ora=timestamp[8:10]
         
-        ora_pprec=str(int(ora)-2)
-        minuto=timestamp[10:12]
-        minuto_pprec=str(int(minuto)-2)
+#         ora_pprec=str(int(ora)-2)
+#         minuto=timestamp[10:12]
+#         minuto_pprec=str(int(minuto)-2)
         
-        weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+#         weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
         
-        weekday=weekday.weekday()
+#         weekday=weekday.weekday()
         
-        feeds2=dict(feeds)        
-        del feeds2['latitude']
-        del feeds2['longitude']
+#         feeds2=dict(feeds)        
+#         del feeds2['latitude']
+#         del feeds2['longitude']
         
-        if ora=='23':
-                weekday= (weekday+1) %7
+#         if ora=='23':
+#                 weekday= (weekday+1) %7
         
-        query={"_id": "Today_zone "+str(weekday)} 
-        new_dict={}
+#         query={"_id": "Today_zone "+str(weekday)} 
+#         new_dict={}
 
 
-        for d in feeds2:
-           p=json.dumps(d)
-           p=p[1:len(p)-1]
-           sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
-           new_dict[sum_]=feeds[d]
+#         for d in feeds2:
+#            p=json.dumps(d)
+#            p=p[1:len(p)-1]
+#            sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
+#            new_dict[sum_]=feeds[d]
           
-           count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
-           new_dict[count]=1
+#            count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
+#            new_dict[count]=1
            
-           sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
-           new_dict[sum_]=feeds[d]
+#            sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+#            new_dict[sum_]=feeds[d]
 
-           count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
-           new_dict[count]=1
+#            count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+#            new_dict[count]=1
            
-        update={"$inc": new_dict, "$unset": {cap_zona+".medie_hourly."+ora+".instantly."+minuto_pprec: "", cap_zona+".medie_hourly."+ora_pprec: ""}}
-        result={"data":[query,update]}
+#         update={"$inc": new_dict, "$unset": {cap_zona+".medie_hourly."+ora+".instantly."+minuto_pprec: "", cap_zona+".medie_hourly."+ora_pprec: ""}}
+#         result={"data":[query,update]}
         
-        return result
+#         return result
         
-def creazione_pattern_today_squares(cap_zona,squareid,timestamp,feeds):
+# def creazione_pattern_today_squares(cap_zona,squareid,timestamp,feeds):
 
-        # anno_mese=timestamp[:6]
-        ora=timestamp[8:10]
+#         # anno_mese=timestamp[:6]
+#         ora=timestamp[8:10]
         
-        ora_pprec=str(int(ora)-2)
-        minuto=timestamp[10:12]
-        minuto_pprec=str(int(minuto)-2)
+#         ora_pprec=str(int(ora)-2)
+#         minuto=timestamp[10:12]
+#         minuto_pprec=str(int(minuto)-2)
         
-        weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+#         weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
         
-        weekday=weekday.weekday()
+#         weekday=weekday.weekday()
         
-        feeds2=dict(feeds)        
-        del feeds2['latitude']
-        del feeds2['longitude']
+#         feeds2=dict(feeds)        
+#         del feeds2['latitude']
+#         del feeds2['longitude']
         
-        if ora=='23':
-                weekday= (weekday+1) %7
+#         if ora=='23':
+#                 weekday= (weekday+1) %7
         
-        query={"_id": "Today_squares "+str(weekday)}
-        new_dict={}
+#         query={"_id": "Today_squares "+str(weekday)}
+#         new_dict={}
 
-        for d in feeds2:
-           p=json.dumps(d)
-           p=p[1:len(p)-1]
-           sum_=cap_zona+"."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
-           new_dict[sum_]=feeds[d]
+#         for d in feeds2:
+#            p=json.dumps(d)
+#            p=p[1:len(p)-1]
+#            sum_=cap_zona+"."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+#            new_dict[sum_]=feeds[d]
            
-           count=cap_zona+"."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
-           new_dict[count]=1
+#            count=cap_zona+"."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+#            new_dict[count]=1
                 
-           sum_=cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
-           new_dict[sum_]=feeds[d]
+#            sum_=cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+#            new_dict[sum_]=feeds[d]
 
-           count=cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
-           new_dict[count]=1
+#            count=cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+#            new_dict[count]=1
         
-        update={"$inc": new_dict, "$unset": {cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto_pprec: "", cap_zona+"."+squareid+".medie_hourly."+ora_pprec: ""}}
-        result={"data":[query,update]}
+#         update={"$inc": new_dict, "$unset": {cap_zona+"."+squareid+".medie_hourly."+ora+".instantly."+minuto_pprec: "", cap_zona+"."+squareid+".medie_hourly."+ora_pprec: ""}}
+#         result={"data":[query,update]}
         
-        return result
+#         return result
 
 
 
-def creazione_pattern_raw(centralina,cap,square,timestamp,feeds):
-        result={}
-        anno_mese=timestamp[:6]
-        minuto=timestamp[:12]
+# def creazione_pattern_raw(centralina,cap,square,timestamp,feeds):
+#         result={}
+#         anno_mese=timestamp[:6]
+#         minuto=timestamp[:12]
         
-        query_raw={"centralina": centralina, "timestamp": anno_mese}
-        update_raw={"$set": { minuto : { "feeds": feeds, "cap": cap, "zona_square": square } }}
+#         query_raw={"centralina": centralina, "timestamp": anno_mese}
+#         update_raw={"$set": { minuto : { "feeds": feeds, "cap": cap, "zona_square": square } }}
         
 
-        result={"data":[query_raw,update_raw]}
+#         result={"data":[query_raw,update_raw]}
         
-        return result
+#         return result
 
-def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
+# def creazione_pattern_zona (centralina,cap_zona,squareid,timestamp,feeds):
         
-        feeds2=dict(feeds)        
-        del feeds2['latitude']
-        del feeds2['longitude']
+#         feeds2=dict(feeds)        
+#         del feeds2['latitude']
+#         del feeds2['longitude']
 
-        result={}
-        new_dict={}
-        epoch=datetime.datetime.utcfromtimestamp(0)        
-        now=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
-        days_from_epoch=(now-epoch).days
-        # squareid=zona_square[8:]
-        # zona=zona_square[:8]
-        # cap_zona=cap_zona_square[:17]
-        # squareid=cap_zona_square[18:]
-        # giorno=timestamp[:8]
-        ora=timestamp[8:10]        
-        minuto=timestamp[10:12]
-        print(cap_zona)
-        print(squareid)
+#         result={}
+#         new_dict={}
+#         epoch=datetime.datetime.utcfromtimestamp(0)        
+#         now=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+#         days_from_epoch=(now-epoch).days
+#         # squareid=zona_square[8:]
+#         # zona=zona_square[:8]
+#         # cap_zona=cap_zona_square[:17]
+#         # squareid=cap_zona_square[18:]
+#         # giorno=timestamp[:8]
+#         ora=timestamp[8:10]        
+#         minuto=timestamp[10:12]
+#         print(cap_zona)
+#         print(squareid)
 
-        weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
+#         weekday=datetime.datetime(int(timestamp[:4]), int(timestamp[4:6]), int(timestamp[6:8]))
         
-        weekday=weekday.weekday()
+#         weekday=weekday.weekday()
 
-        query_next_day={"_id": weekday+1 , "date": days_from_epoch }
-        query_today={"_id": weekday, "date": days_from_epoch}
+#         query_next_day={"_id": weekday+1 , "date": days_from_epoch }
+#         query_today={"_id": weekday, "date": days_from_epoch}
 
-        # creo la query per il pattern del giorno dopo
-        for d in feeds2:
-                p=json.dumps(d)
-                p=p[1:len(p)-1]
+#         # creo la query per il pattern del giorno dopo
+#         for d in feeds2:
+#                 p=json.dumps(d)
+#                 p=p[1:len(p)-1]
 
-                # sum_=cap+"."+zona+".medie_daily."+p+".sum"
-                sum_=cap_zona+".medie_daily."+p+".sum"
-                new_dict[sum_]=feeds[d]
-                # count=cap+"."+zona+".medie_daily."+p+".count"
-                count=cap_zona+".medie_daily."+p+".count"
-                new_dict[count]=1
-                # sum_=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
-                sum_=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
-                new_dict[sum_]=feeds[d]
-                # count=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
-                count=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
-                new_dict[count]=1
-        new_values_nd={"$inc":new_dict}
+#                 # sum_=cap+"."+zona+".medie_daily."+p+".sum"
+#                 sum_=cap_zona+".medie_daily."+p+".sum"
+#                 new_dict[sum_]=feeds[d]
+#                 # count=cap+"."+zona+".medie_daily."+p+".count"
+#                 count=cap_zona+".medie_daily."+p+".count"
+#                 new_dict[count]=1
+#                 # sum_=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
+#                 sum_=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".sum"
+#                 new_dict[sum_]=feeds[d]
+#                 # count=cap+"."+zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
+#                 count=cap_zona+".squares."+squareid+".medie_daily.feeds."+p+".count"
+#                 new_dict[count]=1
+#         new_values_nd={"$inc":new_dict}
 
-        new_dict={}
+#         new_dict={}
         
-        # creo pattern per la query del giorno attuale
-        for d in feeds2:
-                p=json.dumps(d)
-                p=p[1:len(p)-1]
+#         # creo pattern per la query del giorno attuale
+#         for d in feeds2:
+#                 p=json.dumps(d)
+#                 p=p[1:len(p)-1]
                 
-                # sum_=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".sum"
-                sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
-                new_dict[sum_]=feeds[d]
-                # count=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".count"
-                count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
-                new_dict[count]=1
-                # sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
-                sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
-                new_dict[sum_]=feeds[d]
-                # count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
-                count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
-                new_dict[count]=1
+#                 # sum_=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".sum"
+#                 sum_=cap_zona+".medie_hourly."+ora+".feeds."+p+".sum"
+#                 new_dict[sum_]=feeds[d]
+#                 # count=cap+"."+zona+".medie_hourly."+ora+".feeds."+p+".count"
+#                 count=cap_zona+".medie_hourly."+ora+".feeds."+p+".count"
+#                 new_dict[count]=1
+#                 # sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+#                 sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".sum"
+#                 new_dict[sum_]=feeds[d]
+#                 # count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+#                 count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".feeds."+p+".count"
+#                 new_dict[count]=1
 
-                # sum_=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
-                sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
-                new_dict[sum_]=feeds[d]
-                # sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
-                sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
-                new_dict[sum_]=feeds[d]                
-                # count=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
-                count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
-                new_dict[count]=1
-                # count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
-                count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
-                new_dict[count]=1
+#                 # sum_=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+#                 sum_=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+#                 new_dict[sum_]=feeds[d]
+#                 # sum_=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+#                 sum_=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".sum"
+#                 new_dict[sum_]=feeds[d]                
+#                 # count=cap+"."+zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+#                 count=cap_zona+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+#                 new_dict[count]=1
+#                 # count=cap+"."+zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+#                 count=cap_zona+".squares."+squareid+".medie_hourly."+ora+".instantly."+minuto+".feeds."+p+".count"
+#                 new_dict[count]=1
 
-        new_values_td={"$inc":new_dict}
+#         new_values_td={"$inc":new_dict}
 
-        result = {"data":[[query_next_day,new_values_nd],[query_today,new_values_td]]}
+#         result = {"data":[[query_next_day,new_values_nd],[query_today,new_values_td]]}
         
-        return result
+#         return result
 
 
 # Funzione che costruisce il pattern da inserire nel Firebase:
 
-def creazione_data_request(centralina,polygons,coordinate,squares, timestamp, feeds, data_sensor):
+# def creazione_data_request(centralina,polygons,coordinate,squares, timestamp, feeds, data_sensor):
         
         
-        cap_zona_square_groups = sort_feed.Sorting_AreasKM(squares, coordinate)
-        centralina=str(centralina)
-        cap_zona=cap_zona_square_groups['cap']+"_"+cap_zona_square_groups['zona']
-        square=str(cap_zona_square_groups['square'])
-        groups=cap_zona_square_groups['groups']
-        cap=cap_zona_square_groups['cap']        
+#         cap_zona_square_groups = sort_feed.Sorting_AreasKM(squares, coordinate)
+#         centralina=str(centralina)
+#         cap_zona=cap_zona_square_groups['cap']+"_"+cap_zona_square_groups['zona']
+#         square=str(cap_zona_square_groups['square'])
+#         groups=cap_zona_square_groups['groups']
+#         cap=cap_zona_square_groups['cap']        
 
-        # cap=cap_zona_square[:9]
-        # users=1
-        # users=data_sensor['data']['monitoring']['features']['properties']['group']
-        # zona_square=cap_zona_square[10:]
-        # zona=cap_zona_square[10:18]
-        # square=cap_zona_square[10:]
+#         # cap=cap_zona_square[:9]
+#         # users=1
+#         # users=data_sensor['data']['monitoring']['features']['properties']['group']
+#         # zona_square=cap_zona_square[10:]
+#         # zona=cap_zona_square[10:18]
+#         # square=cap_zona_square[10:]
 
-        # timestamp_giornaliero=timestamp[:8]
-        # timestamp_orario=timestamp[:10]
-        # timestamp_instant=timestamp[:12]
+#         # timestamp_giornaliero=timestamp[:8]
+#         # timestamp_orario=timestamp[:10]
+#         # timestamp_instant=timestamp[:12]
         
-        dati5=creazione_pattern_raw(centralina,cap,square,timestamp,feeds)
-        dati6=creazione_pattern_zona(centralina,cap_zona,square,timestamp,feeds)
-        dati7=creazione_pattern_today_squares(cap_zona,square,timestamp,feeds)
-        dati8=creazione_pattern_today_zone(cap_zona,timestamp,feeds)
+#         dati5=creazione_pattern_raw(centralina,cap,square,timestamp,feeds)
+#         dati6=creazione_pattern_zona(centralina,cap_zona,square,timestamp,feeds)
+#         dati7=creazione_pattern_today_squares(cap_zona,square,timestamp,feeds)
+#         dati8=creazione_pattern_today_zone(cap_zona,timestamp,feeds)
 
-        dati={"queries":[dati5,dati6,dati7,dati8]}
+#         dati={"queries":[dati5,dati6,dati7,dati8]}
         
         
-        dati['group']=groups
+#         dati['group']=groups
 
         
-        return dati
+#         return dati
         
 # Funzione che invia la singola stringa a Flask
 def invio_dati_flask_str(data, data_sensor):
