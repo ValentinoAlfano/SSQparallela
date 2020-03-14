@@ -1,9 +1,6 @@
-# coding=utf-8
-
 import json
 import time
 import requests
-# import firebase
 import datetime
 import codecs
 import sort_feed
@@ -90,10 +87,10 @@ def send_flask(data_sensor):
                         
                         for file in file_list:
                                         start_time = time.time()
-                                        
-                                        while(file_in_uso(file)):
-                                                print("File attualmente in uso. Riprovo tra 2 secondi")
-                                                time.sleep(2)
+                                        if(file == file_list[0]):
+                                                while(file_in_uso(file)):
+                                                        print("File attualmente in uso. Riprovo tra 2 secondi")
+                                                        time.sleep(2)
 
                                         with open(file, "r") as fp:
                                                 # CARICO PACCHETTI DA FILE
