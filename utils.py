@@ -22,8 +22,8 @@ def check_databuffer():
 		date_str = file_str.split("/")[-1][11:21]
 		date = datetime.strptime(date_str, "%Y%m%d%H")
 		date_list.append(date)
-	#ORDINO LA LISTA DI DATE
-	date_list.sort() 
+	#ORDINO LA LISTA DI DATE: PRIMO ELEMENTO -> PIU' RECENTE
+	date_list.sort(reverse=True) 
 
 	#converto lista ordinata date in lista file
 	for date in date_list:
