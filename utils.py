@@ -8,7 +8,7 @@ from pathlib import Path
 #path = os.getcwd() + "/"
 path = "/home/pi/Desktop/SSQ/"
 
-#funzione che restituisce False se non ci sono file DATABUFFER, altrimenti True
+#Funzione che restituisce la lista di file DATABUFFER
 def check_databuffer():
 	#print("Sono in check_databuffer()")
 	files = Path(path).glob('DATABUFFER_*')	
