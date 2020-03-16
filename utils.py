@@ -39,7 +39,7 @@ def checkPath(percorso):
 		return True
 	else:
 		os.mkdir(percorso)
-		print("La cartella " + path + percorso + " non esisteva, l'ho creata")
+		print("La cartella " + percorso + " non esisteva, l'ho creata")
 
 def createNameLog():
 	checkPath(path + 'Error_Log/')
