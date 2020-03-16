@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Path per il SystemStarter:
 #path = os.getcwd() + "/"
-path = "/home/pi/Desktop/SSQ/"
+path = "/home/pi/Desktop/SSQparallela/"
 
 #Funzione che restituisce la lista di file DATABUFFER
 def check_databuffer():
